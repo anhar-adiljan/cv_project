@@ -7,9 +7,9 @@ import numpy as np
 import glob
 
 learning_rate = 1e-3
-training_epochs = 3
+training_epochs = 50
 batch_size = 100
-display_step = 1
+display_step = 5
 # function that generates a single convolutional layer
 # a - activation from the previous layer; w - weight; b - bias
 def conv_layer(a, w, b):
@@ -144,30 +144,28 @@ with tf.Session() as sess:
 		tst_loss = sess.run(cost, feed_dict={x: tst_x, y: tst_y})
 		tr_losses.append(avg_cost / (tr_n * 64 * 64))
 		tst_losses.append(tst_loss / (tst_n * 64 * 64))
+		print('Epoch:', '%04d' % epoch, \
+			  'training loss:', '{:.3f}'.format(avg_cost), \
+			  'test loss:', '{:.3f}'.format(tst_loss))
 		if epoch % display_step == 0:
-			print('Epoch:', '%04d' % epoch, \
-			      'training loss:', '{:.3f}'.format(avg_cost), \
-			      'test loss:', '{:.3f}'.format(tst_loss))
+			# visualize colorization on training and test sets
+			img_out = sess.run(pred, feed_dict={x: tst_x})
+			img_out = np.concatenate((tst_x, img_out), axis=3)
+			for i in range(tst_n):
+				img = img_out[i]
+				img = color.luv2rgb(img)
+				fname = 'out/test_out' + str(i) + '_epoch' + str(epoch) + '.png'
+				imsave(fname, img)
+			img_out = sess.run(pred, feed_dict={x: tr_x})
+			img_out = np.concatenate((tr_x, img_out), axis=3)
+			for i in range(tr_n):
+				img = img_out[i]
+				img = color.luv2rgb(img)
+				fname = 'out/tr_out' + str(i) + '_epoch' + str(epoch) + '.png'
+				imsave(fname, img)
 	print ("Optimization finished!")
 	# plot error
 	plt.figure(1)
 	plt.plot(tr_losses, 'r')
 	plt.plot(tst_losses, 'g')
 	plt.savefig('error.png')
-	
-	# visualize colorization on training and test sets
-	img_out = sess.run(pred, feed_dict={x: tst_x})
-	img_out = np.concatenate((tst_x, img_out), axis=3)
-	for i in range(tst_n):
-		img = img_out[i]
-		img = color.luv2rgb(img)
-		print(img.shape)
-		fname = 'out/test_out' + str(i) + '.png'
-		imsave(fname, img)
-	img_out = sess.run(pred, feed_dict={x: tr_x})
-	img_out = np.concatenate((tr_x, img_out), axis=3)
-	for i in range(tr_n):
-		img = img_out[i]
-		img = color.luv2rgb(img)
-		fname = 'out/tr_out' + str(i) + '.png'
-		imsave(fname, img)

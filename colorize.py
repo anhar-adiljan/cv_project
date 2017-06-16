@@ -6,10 +6,10 @@ import tensorflow as tf
 import numpy as np
 import glob
 
-learning_rate = 1e-3
-training_epochs = 50
+learning_rate = 1e-2
+training_epochs = 500
 batch_size = 100
-display_step = 5
+display_step = 25
 # function that generates a single convolutional layer
 # a - activation from the previous layer; w - weight; b - bias
 def conv_layer(a, w, b):
@@ -147,7 +147,7 @@ with tf.Session() as sess:
 		print('Epoch:', '%04d' % epoch, \
 			  'training loss:', '{:.3f}'.format(avg_cost), \
 			  'test loss:', '{:.3f}'.format(tst_loss))
-		if epoch % display_step == 0:
+		if (epoch+1) % display_step == 0:
 			# visualize colorization on training and test sets
 			img_out = sess.run(pred, feed_dict={x: tst_x})
 			img_out = np.concatenate((tst_x, img_out), axis=3)
@@ -163,9 +163,9 @@ with tf.Session() as sess:
 				img = color.luv2rgb(img)
 				fname = 'out/tr_out' + str(i) + '_epoch' + str(epoch) + '.png'
 				imsave(fname, img)
+			# plot error
+			plt.figure(1)
+			plt.plot(tr_losses, 'r')
+			plt.plot(tst_losses, 'g')
+			plt.savefig('error.png')
 	print ("Optimization finished!")
-	# plot error
-	plt.figure(1)
-	plt.plot(tr_losses, 'r')
-	plt.plot(tst_losses, 'g')
-	plt.savefig('error.png')
